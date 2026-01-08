@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Una Carta para Nosotros</title>
+
+<style>
+:root {
+  --primary: #ff00ea;
+}
+
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #ff052f;
+}
+
+/* Fondo local desde carpeta */
+#bgImage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+/* Capa suave para que el texto se lea bien */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0);
+  z-index: -1;
+}
+
+.container {
+  max-width: 900px;
+  margin: 20px;
+  padding: 30px;
+  background: rgba(255,255,255,0.96);
+  border-radius: 26px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.22);
+}
+
+@media (min-width: 768px) {
+  .container {
+    margin: 50px auto;
+    padding: 55px;
+  }
+}
+
+h1 {
+  text-align: center;
+  color: var(--primary);
+  font-size: 2.3rem;
+  margin-bottom: 35px;
+}
+
+p {
+  font-size: 1.15rem;
+  line-height: 1.95;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+canvas {
+  width: 100%;
+  height: 180px;
+  border-radius: 18px;
+  border: 2px solid var(--primary);
+  background: #fff;
+  touch-action: none;
+}
+
+.signatures {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  margin-top: 30px;
+}
+
+@media (min-width: 768px) {
+  .signatures {
+    flex-direction: row;
+  }
+}
+
+button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 32px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(178,58,72,0.35);
+}
+
+@media (min-width: 768px) {
+  button {
+    width: auto;
+    padding: 16px 45px;
+  }
+}
+
+#finalMessage {
+  display: none;
+  text-align: center;
+  font-size: 1.6rem;
+  color: var(--primary);
+  margin-top: 35px;
+}
+
+/* Tulipanes */
+.bouquet {
+  position: fixed;
+  bottom: -50px;
+  animation: bloom linear forwards;
+  pointer-events: none;
+}
+
+@keyframes bloom {
+  0% { transform: translateY(0) scale(0.2); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-115vh) scale(1.6); opacity: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🌸 FONDO LOCAL -->
+<img id="bgImage" src="fondo.jpg" alt="">
+<div class="overlay"></div>
+
+<div class="container" id="letter">
+
+<h1>Una Carta para Nosotros</h1>
+
+<p>
+Hoy no escribo esto como una promesa,
+sino como un acto de valentía.
+Como la decisión consciente de abrir el corazón
+y decir, sin máscaras ni miedo:
+<strong>quiero intentarlo contigo.</strong>
+</p>
+
+<p>
+Quiero compartir tiempo contigo.
+Tiempo real.
+Tiempo para conocernos despacio,
+para descubrirnos en lo cotidiano,
+en lo imperfecto y en lo sincero.
+</p>
+
+<p>
+No prometo perfección.
+Prometo cuidado.
+Prometo escuchar con atención,
+hablar con honestidad
+y quedarme cuando el amor lo merezca.
+</p>
+
+<p>
+Si este camino nos lleva a quedarnos,
+que sea porque el amor creció.
+Y si nos lleva a soltarnos,
+que sea con gratitud
+por habernos dado esta oportunidad.
+</p>
+
+<p><strong>Fecha:</strong> <span id="date"></span></p>
+
+<div class="signatures">
+  <canvas id="canvas1"></canvas>
+  <canvas id="canvas2"></canvas>
+</div>
+
+<button onclick="signLetter()">Firmar esta carta</button>
+
+<div id="finalMessage">
+  🌷 Esta carta fue firmada con amor 🌷<br>
+  Que lo que siga, sea verdadero.
+</div>
+
+</div>
+
+<audio id="music" loop>
+  <source src="musica.mp3">
+</audio>
+
+<script>
+/* Fecha automática */
+document.getElementById("date").textContent =
+  new Date().toLocaleDateString();
+
+/* Firmas (mouse + touch) */
+function setupCanvas(canvas) {
+  const ctx = canvas.getContext("2d");
+  let drawing = false;
+  const scale = window.devicePixelRatio || 1;
+
+  canvas.width = canvas.offsetWidth * scale;
+  canvas.height = canvas.offsetHeight * scale;
+  ctx.scale(scale, scale);
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+
+  const pos = e => {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+    return { x: e.offsetX, y: e.offsetY };
+  };
+
+  const start = e => {
+    drawing = true;
+    const p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  };
+
+  const draw = e => {
+    if (!drawing) return;
+    const p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  };
+
+  const stop = () => drawing = false;
+
+  canvas.addEventListener("mousedown", start);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stop);
+  canvas.addEventListener("mouseleave", stop);
+
+  canvas.addEventListener("touchstart", start);
+  canvas.addEventListener("touchmove", draw);
+  canvas.addEventListener("touchend", stop);
+}
+
+setupCanvas(canvas1);
+setupCanvas(canvas2);
+
+/* Firmar carta */
+function signLetter() {
+  music.play();
+  finalMessage.style.display = "block";
+  document.querySelectorAll("button").forEach(el => el.disabled = true);
+
+  for (let i = 0; i < 140; i++) {
+    const flower = document.createElement("div");
+    flower.className = "bouquet";
+    flower.textContent = "🌷";
+    flower.style.left = Math.random() * 100 + "vw";
+    flower.style.fontSize = 44 + Math.random() * 65 + "px";
+    flower.style.animationDuration = 6 + Math.random() * 8 + "s";
+    document.body.appendChild(flower);
+    setTimeout(() => flower.remove(), 11000);
+  }
+}
+</script>
+
+</body>
+</html>
